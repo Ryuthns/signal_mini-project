@@ -1,0 +1,255 @@
+classdef FunGencomp < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        UIFigure                   matlab.ui.Figure
+        TimeDivKnobLabel           matlab.ui.control.Label
+        TimeDivKnob                matlab.ui.control.Knob
+        WavefromDropDownLabel      matlab.ui.control.Label
+        WavefromDropDown           matlab.ui.control.DropDown
+        PowerLampLabel             matlab.ui.control.Label
+        PowerLamp                  matlab.ui.control.Lamp
+        StartStopButton            matlab.ui.control.StateButton
+        AmplitudeEditField_2Label  matlab.ui.control.Label
+        AmplitudeEditField         matlab.ui.control.NumericEditField
+        FrequencyEditFieldLabel    matlab.ui.control.Label
+        FrequencyEditField         matlab.ui.control.NumericEditField
+        DCOffsetEditFieldLabel     matlab.ui.control.Label
+        DCOffsetEditField          matlab.ui.control.NumericEditField
+        TDropDown                  matlab.ui.control.DropDown
+        DefaultButton              matlab.ui.control.Button
+        UIAxes                     matlab.ui.control.UIAxes
+    end
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Value changed function: AmplitudeEditField, 
+        % DCOffsetEditField, FrequencyEditField, StartStopButton, 
+        % TDropDown, TimeDivKnob, WavefromDropDown
+        function StartStopButtonValueChanged(app, event)
+            value = app.StartStopButton.Value;
+            A = app.AmplitudeEditField.Value;
+            f = app.FrequencyEditField.Value;
+            timediv = app.TimeDivKnob.Value;
+            offset = app.DCOffsetEditField.Value;
+            tdd = app.TDropDown.Value;
+            wave = app.WavefromDropDown.Value;
+            
+            if value == 1
+                app.PowerLamp.Color = 'green';
+                 if tdd == 's'
+                    timediv = timediv/10000;
+                elseif tdd == 'ms'
+                    timediv = timediv*(10^-3)/10000;
+                elseif tdd == 'us'
+                    timediv = timediv*(10^-6)/10000;
+                end
+                
+                if wave == "sine"
+                    N = 1000;
+                    T = 1/f;
+                    omega = 2*pi*f;
+                    t = ((0:N)/T)*timediv;
+                    y = A*sin(omega*t)+offset;
+                    plot(app.UIAxes,t,y)
+                end
+                if wave == "square"
+                    N = 1000;
+                    T = 1/f;
+                    omega = 2*pi*f;
+                    K = 50000;
+                    y = 0;
+                    t = ((0:N)/T)*timediv;
+                    for k=1:2:K         %odd
+                        y = y+((A*4/pi)*sin(k*omega*t)/k);
+                    end
+                    plot(app.UIAxes,t,y+offset)
+                end
+                if wave == "triangular"
+                    N = 1000;
+                    T = 1/f;
+                    omega = 2*pi*f;
+                    K = 100;
+                    y = 0;
+                    t = ((0:N)/T)*timediv;
+                    for k=1:2:K     %odd
+                        y = y+((-4*A/(k*pi)^2)*cos(k*omega*t));
+                    end
+                    plot(app.UIAxes,t,y*2+offset)
+                end
+                if wave == "sawtooth"
+                    N = 1000;
+                    T = 1/f;
+                    omega = 2*pi*f;
+                    K = 100;
+                    y = 0;
+                    t = ((0:N)/T)*timediv;
+                    for k=1:1:K
+                        y = y+((-A/(k*pi)*sin(k*omega*t)));
+                    end
+                    plot(app.UIAxes,t,y*2+offset)
+                end                
+            else
+                app.PowerLamp.Color = 'red';
+                cla(app.UIAxes);
+            end
+        end
+
+        % Button pushed function: DefaultButton
+        function DefaultButtonPushed(app, event)
+            app.AmplitudeEditField.Value = 0;
+            app.FrequencyEditField.Value = 0;
+            app.TimeDivKnob.Value = 1;
+            app.DCOffsetEditField.Value = 0;
+            app.TDropDown.Value = 's';
+            app.WavefromDropDown.Value = 'square';
+            StartStopButtonValueChanged(app, event);
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create UIFigure and hide until all components are created
+            app.UIFigure = uifigure('Visible', 'off');
+            app.UIFigure.Color = [0.9412 0.9412 0.9412];
+            app.UIFigure.Position = [100 100 812 486];
+            app.UIFigure.Name = 'MATLAB App';
+
+            % Create TimeDivKnobLabel
+            app.TimeDivKnobLabel = uilabel(app.UIFigure);
+            app.TimeDivKnobLabel.HorizontalAlignment = 'center';
+            app.TimeDivKnobLabel.Position = [576 131 52 22];
+            app.TimeDivKnobLabel.Text = 'Time Div';
+
+            % Create TimeDivKnob
+            app.TimeDivKnob = uiknob(app.UIFigure, 'continuous');
+            app.TimeDivKnob.Limits = [1 1000];
+            app.TimeDivKnob.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.TimeDivKnob.Position = [562 167 67 67];
+            app.TimeDivKnob.Value = 1;
+
+            % Create WavefromDropDownLabel
+            app.WavefromDropDownLabel = uilabel(app.UIFigure);
+            app.WavefromDropDownLabel.HorizontalAlignment = 'right';
+            app.WavefromDropDownLabel.Position = [509 289 65 22];
+            app.WavefromDropDownLabel.Text = 'Wavefrom';
+
+            % Create WavefromDropDown
+            app.WavefromDropDown = uidropdown(app.UIFigure);
+            app.WavefromDropDown.Items = {'square', 'triangular', 'sine', 'sawtooth'};
+            app.WavefromDropDown.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.WavefromDropDown.Position = [589 288 150 23];
+            app.WavefromDropDown.Value = 'square';
+
+            % Create PowerLampLabel
+            app.PowerLampLabel = uilabel(app.UIFigure);
+            app.PowerLampLabel.HorizontalAlignment = 'right';
+            app.PowerLampLabel.Position = [680 72 40 22];
+            app.PowerLampLabel.Text = 'Power';
+
+            % Create PowerLamp
+            app.PowerLamp = uilamp(app.UIFigure);
+            app.PowerLamp.Position = [735 72 20 20];
+            app.PowerLamp.Color = [1 0 0];
+
+            % Create StartStopButton
+            app.StartStopButton = uibutton(app.UIFigure, 'state');
+            app.StartStopButton.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.StartStopButton.Text = 'Start/Stop';
+            app.StartStopButton.Position = [536 72 127 22];
+
+            % Create AmplitudeEditField_2Label
+            app.AmplitudeEditField_2Label = uilabel(app.UIFigure);
+            app.AmplitudeEditField_2Label.HorizontalAlignment = 'right';
+            app.AmplitudeEditField_2Label.Position = [521 411 59 22];
+            app.AmplitudeEditField_2Label.Text = 'Amplitude';
+
+            % Create AmplitudeEditField
+            app.AmplitudeEditField = uieditfield(app.UIFigure, 'numeric');
+            app.AmplitudeEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.AmplitudeEditField.Position = [595 411 141 22];
+
+            % Create FrequencyEditFieldLabel
+            app.FrequencyEditFieldLabel = uilabel(app.UIFigure);
+            app.FrequencyEditFieldLabel.HorizontalAlignment = 'right';
+            app.FrequencyEditFieldLabel.Position = [521 370 62 22];
+            app.FrequencyEditFieldLabel.Text = 'Frequency';
+
+            % Create FrequencyEditField
+            app.FrequencyEditField = uieditfield(app.UIFigure, 'numeric');
+            app.FrequencyEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.FrequencyEditField.Position = [598 370 141 22];
+
+            % Create DCOffsetEditFieldLabel
+            app.DCOffsetEditFieldLabel = uilabel(app.UIFigure);
+            app.DCOffsetEditFieldLabel.HorizontalAlignment = 'right';
+            app.DCOffsetEditFieldLabel.Position = [522 330 58 22];
+            app.DCOffsetEditFieldLabel.Text = 'DC Offset';
+
+            % Create DCOffsetEditField
+            app.DCOffsetEditField = uieditfield(app.UIFigure, 'numeric');
+            app.DCOffsetEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.DCOffsetEditField.Position = [595 330 144 22];
+
+            % Create TDropDown
+            app.TDropDown = uidropdown(app.UIFigure);
+            app.TDropDown.Items = {'s', 'ms', 'us'};
+            app.TDropDown.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.TDropDown.Position = [667 139 48 22];
+            app.TDropDown.Value = 's';
+
+            % Create DefaultButton
+            app.DefaultButton = uibutton(app.UIFigure, 'push');
+            app.DefaultButton.ButtonPushedFcn = createCallbackFcn(app, @DefaultButtonPushed, true);
+            app.DefaultButton.Position = [703 245 60 22];
+            app.DefaultButton.Text = 'Default';
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.UIFigure);
+            title(app.UIAxes, 'Function Generator')
+            xlabel(app.UIAxes, 'Time ')
+            ylabel(app.UIAxes, 'Voltage')
+            app.UIAxes.FontName = 'Times New Roman';
+            app.UIAxes.FontWeight = 'bold';
+            app.UIAxes.XGrid = 'on';
+            app.UIAxes.YGrid = 'on';
+            app.UIAxes.FontSize = 16;
+            app.UIAxes.GridColor = [0 0 0];
+            app.UIAxes.GridAlpha = 0.15;
+            app.UIAxes.Position = [18 37 466 423];
+
+            % Show the figure after all components are created
+            app.UIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = FunGencomp
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.UIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.UIFigure)
+        end
+    end
+end
