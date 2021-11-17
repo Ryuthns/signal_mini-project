@@ -37,6 +37,9 @@ classdef FunGencomp < matlab.apps.AppBase
             wave = app.WavefromDropDown.Value;
             
             if value == 1
+                N = 1000;
+                T = 1/f;
+                omega = 2*pi*f;
                 app.PowerLamp.Color = 'green';
                  if tdd == 's'
                     timediv = timediv/10000;
@@ -46,18 +49,12 @@ classdef FunGencomp < matlab.apps.AppBase
                     timediv = timediv*(10^-6)/10000;
                 end
                 
-                if wave == "sine"
-                    N = 1000;
-                    T = 1/f;
-                    omega = 2*pi*f;
+                if wave == "sine"             
                     t = ((0:N)/T)*timediv;
                     y = A*sin(omega*t)+offset;
                     plot(app.UIAxes,t,y)
                 end
                 if wave == "square"
-                    N = 1000;
-                    T = 1/f;
-                    omega = 2*pi*f;
                     K = 50000;
                     y = 0;
                     t = ((0:N)/T)*timediv;
@@ -67,9 +64,6 @@ classdef FunGencomp < matlab.apps.AppBase
                     plot(app.UIAxes,t,y+offset)
                 end
                 if wave == "triangular"
-                    N = 1000;
-                    T = 1/f;
-                    omega = 2*pi*f;
                     K = 100;
                     y = 0;
                     t = ((0:N)/T)*timediv;
@@ -79,9 +73,6 @@ classdef FunGencomp < matlab.apps.AppBase
                     plot(app.UIAxes,t,y*2+offset)
                 end
                 if wave == "sawtooth"
-                    N = 1000;
-                    T = 1/f;
-                    omega = 2*pi*f;
                     K = 100;
                     y = 0;
                     t = ((0:N)/T)*timediv;
