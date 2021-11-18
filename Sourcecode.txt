@@ -1,4 +1,4 @@
-classdef FunGencomp < matlab.apps.AppBase
+classdef lastlast < matlab.apps.AppBase
 
     % Properties that correspond to app components
     properties (Access = public)
@@ -10,12 +10,12 @@ classdef FunGencomp < matlab.apps.AppBase
         PowerLampLabel             matlab.ui.control.Label
         PowerLamp                  matlab.ui.control.Lamp
         StartStopButton            matlab.ui.control.StateButton
-        AmplitudeEditField_2Label  matlab.ui.control.Label
-        AmplitudeEditField         matlab.ui.control.NumericEditField
-        FrequencyEditFieldLabel    matlab.ui.control.Label
-        FrequencyEditField         matlab.ui.control.NumericEditField
-        DCOffsetEditFieldLabel     matlab.ui.control.Label
-        DCOffsetEditField          matlab.ui.control.NumericEditField
+        AmplitudeVEditFieldLabel   matlab.ui.control.Label
+        AmplitudeVEditField        matlab.ui.control.NumericEditField
+        FrequencyHzEditFieldLabel  matlab.ui.control.Label
+        FrequencyHzEditField       matlab.ui.control.NumericEditField
+        DCOffsetVEditFieldLabel    matlab.ui.control.Label
+        DCOffsetVEditField         matlab.ui.control.NumericEditField
         TDropDown                  matlab.ui.control.DropDown
         DefaultButton              matlab.ui.control.Button
         UIAxes                     matlab.ui.control.UIAxes
@@ -24,39 +24,40 @@ classdef FunGencomp < matlab.apps.AppBase
     % Callbacks that handle component events
     methods (Access = private)
 
-        % Value changed function: AmplitudeEditField, 
-        % DCOffsetEditField, FrequencyEditField, StartStopButton, 
-        % TDropDown, TimeDivKnob, WavefromDropDown
+        % Value changed function: AmplitudeVEditField, 
+        % DCOffsetVEditField, FrequencyHzEditField, 
+        % StartStopButton, TDropDown, TimeDivKnob, WavefromDropDown
         function StartStopButtonValueChanged(app, event)
             value = app.StartStopButton.Value;
-            A = app.AmplitudeEditField.Value;
-            f = app.FrequencyEditField.Value;
+            A = app.AmplitudeVEditField.Value;
+            f = app.FrequencyHzEditField.Value;
             timediv = app.TimeDivKnob.Value;
-            offset = app.DCOffsetEditField.Value;
+            offset = app.DCOffsetVEditField.Value;
             tdd = app.TDropDown.Value;
             wave = app.WavefromDropDown.Value;
             
             if value == 1
-                N = 1000;
-                T = 1/f;
-                omega = 2*pi*f;
-                K = 50000;
-                y = 0;
                 app.PowerLamp.Color = 'green';
-                if tdd == 's'
+                 if tdd == 's'
                     timediv = timediv/10000;
                 elseif tdd == 'ms'
                     timediv = timediv*(10^-3)/10000;
                 elseif tdd == 'us'
                     timediv = timediv*(10^-6)/10000;
-                end
-                t = ((0:N)/T)*timediv;
+                 end
+                 
+                 N = 1000;
+                 T = 1/f;
+                 omega = 2*pi*f;
+                 K = 50000;
+                 y = 0;
+                 t = ((0:N)/T)*timediv;
                 
-                if wave == "sine"             
+                if wave == "sine"
                     y = A*sin(omega*t)+offset;
                     plot(app.UIAxes,t,y)
                 end
-                if wave == "square"                  
+                if wave == "square"
                     for k=1:2:K         %odd
                         y = y+((A*4/pi)*sin(k*omega*t)/k);
                     end
@@ -70,7 +71,7 @@ classdef FunGencomp < matlab.apps.AppBase
                 end
                 if wave == "sawtooth"
                     for k=1:1:K
-                        y = y+((-A/(k*pi)*sin(k*omega*t)));
+                        y = y+((-A/(k*pi))*sin(k*omega*t));
                     end
                     plot(app.UIAxes,t,y*2+offset)
                 end                
@@ -82,10 +83,10 @@ classdef FunGencomp < matlab.apps.AppBase
 
         % Button pushed function: DefaultButton
         function DefaultButtonPushed(app, event)
-            app.AmplitudeEditField.Value = 0;
-            app.FrequencyEditField.Value = 0;
+            app.AmplitudeVEditField.Value = 0;
+            app.FrequencyHzEditField.Value = 0;
             app.TimeDivKnob.Value = 1;
-            app.DCOffsetEditField.Value = 0;
+            app.DCOffsetVEditField.Value = 0;
             app.TDropDown.Value = 's';
             app.WavefromDropDown.Value = 'square';
             StartStopButtonValueChanged(app, event);
@@ -147,38 +148,38 @@ classdef FunGencomp < matlab.apps.AppBase
             app.StartStopButton.Text = 'Start/Stop';
             app.StartStopButton.Position = [536 72 127 22];
 
-            % Create AmplitudeEditField_2Label
-            app.AmplitudeEditField_2Label = uilabel(app.UIFigure);
-            app.AmplitudeEditField_2Label.HorizontalAlignment = 'right';
-            app.AmplitudeEditField_2Label.Position = [521 411 59 22];
-            app.AmplitudeEditField_2Label.Text = 'Amplitude';
+            % Create AmplitudeVEditFieldLabel
+            app.AmplitudeVEditFieldLabel = uilabel(app.UIFigure);
+            app.AmplitudeVEditFieldLabel.HorizontalAlignment = 'right';
+            app.AmplitudeVEditFieldLabel.Position = [502 411 78 22];
+            app.AmplitudeVEditFieldLabel.Text = 'Amplitude (V)';
 
-            % Create AmplitudeEditField
-            app.AmplitudeEditField = uieditfield(app.UIFigure, 'numeric');
-            app.AmplitudeEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
-            app.AmplitudeEditField.Position = [595 411 141 22];
+            % Create AmplitudeVEditField
+            app.AmplitudeVEditField = uieditfield(app.UIFigure, 'numeric');
+            app.AmplitudeVEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.AmplitudeVEditField.Position = [595 411 141 22];
 
-            % Create FrequencyEditFieldLabel
-            app.FrequencyEditFieldLabel = uilabel(app.UIFigure);
-            app.FrequencyEditFieldLabel.HorizontalAlignment = 'right';
-            app.FrequencyEditFieldLabel.Position = [521 370 62 22];
-            app.FrequencyEditFieldLabel.Text = 'Frequency';
+            % Create FrequencyHzEditFieldLabel
+            app.FrequencyHzEditFieldLabel = uilabel(app.UIFigure);
+            app.FrequencyHzEditFieldLabel.HorizontalAlignment = 'right';
+            app.FrequencyHzEditFieldLabel.Position = [495 370 88 22];
+            app.FrequencyHzEditFieldLabel.Text = 'Frequency (Hz)';
 
-            % Create FrequencyEditField
-            app.FrequencyEditField = uieditfield(app.UIFigure, 'numeric');
-            app.FrequencyEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
-            app.FrequencyEditField.Position = [598 370 141 22];
+            % Create FrequencyHzEditField
+            app.FrequencyHzEditField = uieditfield(app.UIFigure, 'numeric');
+            app.FrequencyHzEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.FrequencyHzEditField.Position = [598 370 141 22];
 
-            % Create DCOffsetEditFieldLabel
-            app.DCOffsetEditFieldLabel = uilabel(app.UIFigure);
-            app.DCOffsetEditFieldLabel.HorizontalAlignment = 'right';
-            app.DCOffsetEditFieldLabel.Position = [522 330 58 22];
-            app.DCOffsetEditFieldLabel.Text = 'DC Offset';
+            % Create DCOffsetVEditFieldLabel
+            app.DCOffsetVEditFieldLabel = uilabel(app.UIFigure);
+            app.DCOffsetVEditFieldLabel.HorizontalAlignment = 'right';
+            app.DCOffsetVEditFieldLabel.Position = [503 330 77 22];
+            app.DCOffsetVEditFieldLabel.Text = 'DC Offset (V)';
 
-            % Create DCOffsetEditField
-            app.DCOffsetEditField = uieditfield(app.UIFigure, 'numeric');
-            app.DCOffsetEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
-            app.DCOffsetEditField.Position = [595 330 144 22];
+            % Create DCOffsetVEditField
+            app.DCOffsetVEditField = uieditfield(app.UIFigure, 'numeric');
+            app.DCOffsetVEditField.ValueChangedFcn = createCallbackFcn(app, @StartStopButtonValueChanged, true);
+            app.DCOffsetVEditField.Position = [595 330 144 22];
 
             % Create TDropDown
             app.TDropDown = uidropdown(app.UIFigure);
@@ -196,8 +197,8 @@ classdef FunGencomp < matlab.apps.AppBase
             % Create UIAxes
             app.UIAxes = uiaxes(app.UIFigure);
             title(app.UIAxes, 'Function Generator')
-            xlabel(app.UIAxes, 'Time ')
-            ylabel(app.UIAxes, 'Voltage')
+            xlabel(app.UIAxes, 'Time  (s)')
+            ylabel(app.UIAxes, 'Voltage (V)')
             app.UIAxes.FontName = 'Times New Roman';
             app.UIAxes.FontWeight = 'bold';
             app.UIAxes.XGrid = 'on';
@@ -216,7 +217,7 @@ classdef FunGencomp < matlab.apps.AppBase
     methods (Access = public)
 
         % Construct app
-        function app = FunGencomp
+        function app = lastlast
 
             % Create UIFigure and components
             createComponents(app)
